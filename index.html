@@ -154,7 +154,7 @@ label.f{display:grid;gap:5px;font-size:12px;color:var(--muted)}
 .hero h1{font-family:var(--num);font-style:italic;font-weight:400;font-size:46px;line-height:1.05;margin-top:6px}
 .hero .sub{font-family:var(--serif);font-size:15px;margin-top:8px;font-weight:500}
 .hero .me{position:absolute;right:16px;top:calc(40px + env(safe-area-inset-top,0px));z-index:3;width:38px;height:38px;border-radius:50%;border:1px solid rgb(255 255 255/.7);background:rgb(255 255 255/.25);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);color:#fff;font-family:var(--num);font-size:17px;cursor:pointer}
-.hero .petbtn{position:absolute;right:14px;bottom:10px;z-index:2;border:0;background:none;padding:0;cursor:pointer;width:164px}
+.hero .petbtn{position:absolute;right:14px;bottom:10px;z-index:2;border:0;background:none;padding:0;cursor:pointer;width:142px}
 .hero .petbtn img{width:100%;height:auto;display:block;filter:drop-shadow(0 6px 10px rgb(40 40 20/.2))}
 .hero .ground{position:absolute;right:22px;bottom:8px;width:150px;height:16px;border-radius:50%;background:radial-gradient(rgb(60 60 40/.24),transparent 70%);z-index:2}
 .hero .say{position:absolute;left:20px;bottom:44px;max-width:min(54%,260px);z-index:3;background:rgb(255 255 255/.74);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-radius:14px;padding:8px 12px;font-family:var(--serif);font-size:14px;line-height:1.5;color:#1F2A22}
@@ -178,9 +178,12 @@ label.f{display:grid;gap:5px;font-size:12px;color:var(--muted)}
 .days span{font-size:11px;color:var(--muted);display:block;line-height:1.3}
 .days em{font-style:normal;font-family:var(--num);font-size:12px;display:block}
 .dots svg{display:block}
-.perch{margin-top:58px}
-.perch>img,.perch>.pimg{position:absolute;right:12px;top:-64px;width:132px;pointer-events:none}
-.perch.left>img{right:auto;left:10px}
+/* a pet sitting on the top edge of a card: --h is the figure height, the paws overlap the card by 18px */
+.perch{--h:96px;margin-top:calc(var(--h) - 12px)}
+.perch>img{position:absolute;right:12px;bottom:calc(100% - 18px);height:var(--h);width:auto;pointer-events:none;filter:drop-shadow(0 3px 4px var(--shade))}
+.perch.left>img{right:auto;left:12px}
+.perch.lying{--h:80px}
+.perch.cat{--h:72px}
 .perch.peek{padding-right:120px;min-height:90px}
 .quote{font-family:var(--serif);font-size:16px;line-height:1.6;font-weight:500}
 .path{position:relative;height:6px;border-radius:3px;background:var(--hair)}
@@ -418,7 +421,7 @@ details p{margin:6px 0 0;font-size:13px;color:var(--muted)}
 .done{padding-top:2vh}
 .duo{position:relative;height:250px;margin:6px -16px 0}
 .duo::before{content:"";position:absolute;left:50%;bottom:6px;width:300px;height:300px;transform:translateX(-50%);border-radius:50%;background:radial-gradient(circle at 50% 60%,var(--sage-soft),transparent 68%)}
-.duo img{position:absolute;bottom:12px;left:calc(50% - 150px);height:200px;z-index:1}
+.duo img{position:absolute;bottom:12px;left:calc(50% - 160px);height:205px;z-index:1}
 .duo img.c{left:auto;right:calc(50% - 150px);height:150px;bottom:16px;z-index:3}
 .done-h{font-family:var(--serif);font-size:28px;text-align:center;font-weight:600}
 .done-s{display:grid;grid-template-columns:repeat(3,1fr);text-align:center}

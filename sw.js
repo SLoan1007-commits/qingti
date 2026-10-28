@@ -1,8 +1,8 @@
 /* Offline cache: the app shell and the recognition engine are cached on first visit. */
-const CACHE = "qingti-v2-2";
+const CACHE = "qingti-v2-4";
 const SHELL = ["./", "index.html", "manifest.json", "js/core.js", "js/pets.js", "js/parse.js", "js/app.js",
   "fonts/newsreader-400.woff2", "fonts/newsreader-400i.woff2", "fonts/newsreader-500.woff2", "img/sky.webp",
-  "img/pets/dog-sit.webp", "img/pets/dog-walk.webp", "img/pets/dog-bow.webp", "img/pets/dog-lie.webp", "img/pets/dog-head.webp",
+  "img/pets/dog-sit.webp", "img/pets/dog-walk.webp", "img/pets/dog-sit2.webp", "img/pets/dog-lie.webp", "img/pets/dog-head.webp",
   "img/pets/cat-sit.webp", "img/pets/cat-walk.webp", "img/pets/cat-stretch.webp", "img/pets/cat-sleep.webp", "img/pets/cat-head.webp",
   "icons/icon-180.png", "icons/icon-192.png"];
 const LAZY = ["vendor/tesseract.min.js", "vendor/worker.min.js", "vendor/core/tesseract-core-simd-lstm.wasm.js", "vendor/core/tesseract-core-lstm.wasm.js", "vendor/lang/chi_sim-traineddata.wasm"];

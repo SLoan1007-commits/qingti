@@ -232,14 +232,14 @@ function foodEq(kcal){
 }
 function dogMood(){
   const h = new Date().getHours(), gap = lastWorkoutGap();
-  if (h >= 22 || h < 6) return "sleepy";
+  if (h >= 22 || h < 5) return "sleepy";
   if (doneToday()) return "happy";
   if (gap != null && gap >= 3) return "sad";
   return "normal";
 }
 function catMood(){
   const h = new Date().getHours(), gap = lastWorkoutGap();
-  if (h >= 22 || h < 6 || (h >= 13 && h < 15)) return "sleepy";
+  if (h >= 22 || h < 5 || (h >= 13 && h < 15)) return "sleepy";
   if (doneToday()) return "happy";
   if (gap != null && gap >= 5) return "sad";
   return "normal";
@@ -248,7 +248,7 @@ function petLine(kind, key){
   const L = PET_LINES[kind], h = new Date().getHours();
   let k = key || (kind === "dog" ? dogMood() : catMood());
   if (!key && k === "normal" && h >= 6 && h < 10 && Math.random() < .5) k = "morning";
-  return pick(L[k] || L.normal).replace(/\{name\}/g, NAME());
+  return pick(L[k] || L.normal).replace(/\{name\}/g, "姐姐");
 }
 
 /* ================================================================
@@ -458,28 +458,98 @@ function achievements(){
   if (st > 1) a.push(`连续打卡 ${st} 天`);
   return a.join("、");
 }
+// 二楞: warm, clingy, a bit of a goof and a foodie, praises everything. 发财: aloof and sharp-tongued, secretly caring.
+// Both call her 姐姐. Each intent has several replies; one is picked at random.
+const sayD = text => ({who:"dog", text}), sayC = text => ({who:"cat", text});
+const anyOf = (...opts) => () => pick(opts).map(m => typeof m === "function" ? m() : m);
 const COACH = [
-  {k:["累","不想","懒","没动力","没力气","拖延","起不来","好难","不想动"], r:() => [{who:"dog", text:`${NAME()},累了就先停一下,这很正常。我们只做 5 分钟好不好?做完还想停就停,我保证不催你!`, act:["warm5","只做 5 分钟"]},{who:"cat", text:"我建议:先站起来。站起来就赢了一半。"}]},
-  {k:["血糖高","高血糖","餐后血糖","血糖升","超标","血糖有点高"], r:() => [{who:"dog", text:"饭后陪我散步吧!饭后 15–30 分钟开始走 10–15 分钟,餐后血糖的峰值会低很多。每餐先吃菜和肉,主食放最后,也很有用。", act:["meal15","饭后散步 15 分钟"]}]},
-  {k:["低血糖","心慌","手抖","出冷汗","头晕"], r:() => [{who:"dog", text:"如果现在心慌、手抖、出冷汗,先停下来,马上吃 15 克糖(半杯果汁或 3–4 块方糖),15 分钟后再测一次。不舒服一定要告诉身边的人!", act:["sheet:hypo","低血糖安全须知"]}]},
-  {k:["没变化","平台","不掉","没瘦","不降","停滞","卡住","涨","胖了","重了"], r:() => [{who:"dog", text:"体重短期不动或者涨一点,大多是水分在捣乱:盐吃多了、经期前后、肌肉训练后储水都会这样。看一周的平均值更准,继续坚持!"},{who:"cat", text:"我体重也忽上忽下,从不焦虑。"}]},
-  {k:["吃多","暴食","吃撑","火锅","奶茶","零食","蛋糕","烧烤","聚餐","嘴馋"], r:() => [{who:"dog", text:"一顿吃多了没关系!下一餐正常吃,多一份蔬菜。现在出去走 15 分钟,帮助消化、也帮血糖降下来~", act:["meal15","饭后散步 15 分钟"]}]},
-  {k:["打气","鼓励","加油","坚持不下去","放弃","没信心","不自信"], r:() => { const a = achievements(); return [{who:"dog", text: a ? `你看看你已经做到了:${a}!这些都是你自己一点点完成的,太厉害了!` : `愿意为自己做点什么,本身就很了不起。今天先完成一件小事:动 5 分钟,或者记一次体重。我陪着你!`},{who:"cat", text:"嗯……我也觉得你不错。别告诉二楞我说过。"}]; }},
-  {k:["练什么","今天练","推荐","安排","计划","做什么运动"], r:() => { const tc = todayCombo(); return [{who:"dog", text: tc.rest ? `今天是休息日~想动的话,可以做「${courseById(tc.ids[0]).name}」,很轻松。` : `今天的组合是「${tc.ids.map(id => courseById(id).name).join(" + ")}」,一共约 ${comboMin(tc.ids)} 分钟。点下面就能开始!`, act:["today","开始今天的运动"]}]; }},
-  {k:["吃什么","食谱","饿","晚饭","午饭","早饭","早餐","午餐","晚餐"], r:() => [{who:"cat", text:"我推荐小鱼干。……好吧,你去「饮食」页看看控糖食谱,每餐先吃菜。", act:["go:diet","看看食谱"]}]},
-  {k:["睡","失眠","压力","焦虑","烦","心情","难过"], r:() => [{who:"cat", text:"压力大的时候,学我:找个舒服的地方,伸个懒腰,慢慢呼吸。", act:["catyoga12","跟发财做猫式瑜伽"]},{who:"dog", text:"今天不用逼自己高强度,散散步、拉拉伸就很好。我一直在!"}]},
-  {k:["疼","痛","受伤","酸","抽筋"], r:() => [{who:"dog", text:"运动后 1–2 天的肌肉酸痛是正常的,拉伸、喝水、睡好就会缓解。如果是关节刺痛、肿胀或越来越疼,先停下来去看医生哦。", act:["cool5","做 5 分钟拉伸"]}]},
-  {k:["二楞","狗"], r:() => [{who:"dog", text: petLine("dog")}]},
-  {k:["发财","猫"], r:() => [{who:"cat", text: petLine("cat")}]},
-  {k:["谢谢","感谢","爱你","哈哈"], r:() => [{who:"dog", text:"不客气!有你这么认真的主人,我也很开心~"},{who:"cat", text:"嗯,我也……勉强开心。"}]},
-  {k:["你好","hi","hello","嗨","在吗","早上好","晚上好"], r:() => [{who:"dog", text:`${NAME()} 你来啦!想聊运动、血糖,还是想被夸一夸?`}]}
+  {k:["低血糖","心慌","手抖","出冷汗","头晕"], r: () => [sayD("姐姐,如果现在心慌、手抖、出冷汗,先停下来,马上吃 15 克糖:半杯果汁或 3–4 块方糖,15 分钟后再测一次。不舒服一定要告诉身边的人!"), Object.assign(sayC("别逞强。糖先吃了再说。"), {act:["sheet:hypo","低血糖安全须知"]})]},
+  {k:["血糖高","高血糖","餐后血糖","血糖升","超标","血糖有点高"], r: anyOf(
+    [Object.assign(sayD("饭后陪我散步吧!饭后 15–30 分钟出门走 10–15 分钟,餐后的高峰会低很多。我已经把牵引绳叼来了~"), {act:["meal15","饭后散步 15 分钟"]}), sayC("还有,每餐先吃菜和肉,主食放最后。我吃饭从来不急,你学着点。")],
+    [Object.assign(sayD("姐姐别担心,偶尔高一点很正常。我们现在就去走一圈,回来再测,看看会降多少!"), {act:["meal15","饭后散步 15 分钟"]})],
+    [sayC("又是精米白面吧。换一半成粗粮,我替你盯着。"), Object.assign(sayD("然后我负责陪你走路消化!"), {act:["meal15","饭后散步 15 分钟"]})])},
+  {k:["加班","工作","上班","开会","忙","出差","老板"], r: anyOf(
+    [sayD("姐姐辛苦了!坐久了起来动 2 分钟:伸伸懒腰、转转脖子,我在桌子底下等你~"), sayC("工作做不完的。你的腰只有一个。")],
+    [Object.assign(sayC("忙不是理由。我也很忙,忙着睡觉,但我还是会伸懒腰。"), {act:["cool5","做 5 分钟拉伸"]}), sayD("下班回来我们去散步,好不好?好不好?")])},
+  {k:["累","不想","懒","没动力","没力气","拖延","起不来","好难","偷懒","明天再说"], r: anyOf(
+    [Object.assign(sayD("姐姐累了就先歇一下,这很正常。我们只做 5 分钟好不好?做完还想停就停,我保证不催你!"), {act:["warm5","只做 5 分钟"]}), sayC("先站起来。站起来就赢了一半。")],
+    [Object.assign(sayD("那今天就做最轻松的!坐在椅子上动一动也算数,我趴在你脚边陪你~"), {act:["chair10","椅子上的运动"]}), sayC("我连椅子都懒得下。你比我强一点就行。")],
+    [sayC("明天再说?你上周也是这么说的。"), Object.assign(sayD("发财你别凶姐姐!姐姐,就 5 分钟,做完我给你表演转圈圈!"), {act:["warm5","只做 5 分钟"]})])},
+  {k:["没变化","平台","不掉","没瘦","不降","停滞","卡住","涨了","胖了","重了"], r: anyOf(
+    [sayD("体重短期不动或者涨一点,大多是水分在捣乱:盐吃多了、经期前后、力量训练后肌肉储水都会这样。看一周的平均值更准,继续坚持!"), sayC("我体重也忽上忽下,从不焦虑。")],
+    [sayD("姐姐,体重秤只看得到数字,看不到你变紧的线条!看看体脂率和腰围,它们更诚实。"), sayC("而且你最近站得比以前直了。我观察的。")])},
+  {k:["吃多","暴食","吃撑","火锅","奶茶","零食","蛋糕","烧烤","聚餐","嘴馋"], r: anyOf(
+    [Object.assign(sayD("一顿吃多了没关系!下一餐正常吃,多一份蔬菜。现在出去走 15 分钟,帮助消化、也帮血糖降下来~"), {act:["meal15","饭后散步 15 分钟"]}), sayC("……吃了什么,下次带我一份。")],
+    [sayC("奶茶喝了就喝了,别在那儿后悔。后悔不消耗热量。"), Object.assign(sayD("对!我们走路消耗热量!出发出发!"), {act:["meal15","饭后散步 15 分钟"]})])},
+  {k:["打气","鼓励","加油","坚持不下去","放弃","没信心","不自信"], r: () => { const a = achievements(); return pick([
+    [sayD(a ? `姐姐你看,你已经${a}了!这些都是你自己一点点完成的,太厉害了!` : "愿意为自己做点什么,本身就很了不起。今天先完成一件小事:动 5 分钟,或者记一次体重。我陪着你!"), sayC("嗯……我也觉得你不错。别告诉二楞我说过。")],
+    [sayD("姐姐是我见过最棒的人!(我只见过小区里的人,但还是最棒的!)"), sayC("它说得夸张,但方向没错。")],
+    [sayC("放弃很容易,我天天放弃下沙发。但你不是我。"), sayD("姐姐,我们一步一步来,今天比昨天多走一点点就赢了!")]]); }},
+  {k:["练什么","今天练","推荐","安排","计划","做什么运动"], r:() => { const tc = todayCombo(); return [Object.assign(sayD(tc.rest ? `今天是休息日~想动的话可以做「${courseById(tc.ids[0]).name}」,很轻松。` : `今天的组合是「${tc.ids.map(id => courseById(id).name).join(" + ")}」,一共约 ${comboMin(tc.ids)} 分钟。点下面就能开始,我已经在门口摇尾巴了!`), {act:["today","开始今天的运动"]})]; }},
+  {k:["吃什么","食谱","饿","晚饭","午饭","早饭","早餐","午餐","晚餐"], r: anyOf(
+    [Object.assign(sayC("我推荐小鱼干。……好吧,你去「饮食」页看看控糖菜单,每餐先吃菜。"), {act:["go:diet","看看菜单"]}), sayD("我推荐鸡胸肉!可以分我一口吗?就一口!")],
+    [Object.assign(sayD("姐姐饿啦?「饮食」页里有今天的菜单,高蛋白、控糖的都有!"), {act:["go:diet","看看菜单"]}), sayC("别饿着肚子运动。会晕。")])},
+  {k:["失眠","睡不着","熬夜","做梦"], r: anyOf(
+    [Object.assign(sayC("睡不着?跟我学:找个软的地方,蜷起来,慢慢呼吸。放下手机。"), {act:["catyoga12","跟发财做猫式瑜伽"]}), sayD("我可以趴在床边陪你,一直到你睡着~")],
+    [sayD("姐姐,睡前 1 小时别看手机,喝点温水,拉伸 5 分钟,会好睡很多!"), sayC("还有,别想明天的事。明天的事明天的你会处理。")])},
+  {k:["压力","焦虑","烦","心情","难过","不开心","委屈","哭"], r: anyOf(
+    [Object.assign(sayC("压力大的时候,学我:找个舒服的地方,伸个懒腰,慢慢呼吸。"), {act:["catyoga12","跟发财做猫式瑜伽"]}), sayD("今天不用逼自己,散散步、晒晒太阳就很好。我一直在!")],
+    [sayD("姐姐抱抱!要不要摸摸我的头?听说摸狗狗能让心情变好,我免费的!"), sayC("我也……可以借你摸一下。就一下。")],
+    [sayC("谁让你不开心了?告诉我,我去他鞋里睡觉。"), sayD("我去帮你叫他!汪汪汪!")])},
+
+  {k:["下雨","天气","好冷","太热","刮风","雾霾","出不了门"], r: anyOf(
+    [Object.assign(sayD("出不了门就在家动!有不出门的课程,我在客厅陪你!"), {act:["go:sport","看看在家课程"]}), sayC("下雨天最适合躺着。但你还是动一下吧。")],
+    [sayD("天气不好也别怕,在家原地踏步 10 分钟,和外面走一样有用!"), sayC("我反正哪天都不出门。")])},
+  {k:["生理期","例假","姨妈","经期","痛经"], r: () => [sayD("姐姐这几天别勉强,做做轻柔的拉伸、散散步就好,多喝温水。肚子疼就休息,我给你暖肚子!"), Object.assign(sayC("这几天体重涨一点是正常的,别看秤。躺着,我陪你躺。"), {act:["cool5","温和拉伸 5 分钟"]})]},
+  {k:["喝水","口渴","多喝"], r: anyOf(
+    [() => sayD(`姐姐,今天目标喝水约 ${Math.round((latestW()||58)*33/100)*100} ml!我喝水的时候溅了一地,你别学我。`), sayC("我只喝流动的水。你随意。")],
+    [sayC("渴了才喝就晚了。现在就去倒一杯。"), sayD("我陪你去!(顺便看看厨房有没有吃的)")])},
+  {k:["夸我","好看","漂亮","身材","瘦了"], r: anyOf(
+    [sayD("姐姐最好看了!每天都比昨天更好看!这是真话,狗狗不会说谎!"), sayC("嗯。今天的气色确实还行。")],
+    [sayC("自信点。我从来不问别人我好不好看,因为答案显而易见。"), sayD("姐姐和发财一样好看!不,比发财还好看!"), sayC("……二楞你今天没饭吃了。")])},
+  {k:["无聊","陪我","孤单","想你","聊聊"], r: anyOf(
+    [sayD("我一直都在!我们去散步吧?或者你给我讲讲今天发生了什么?"), sayC("我也在。虽然我在睡觉,但我在。")],
+    [sayD("姐姐想我啦?我也想你!每次你打开 App,我的尾巴就开始摇!"), sayC("我没有想你。我只是刚好醒着。")])},
+  {k:["笑话","好玩","逗我","讲个"], r: anyOf(
+    [sayD("我昨天追了自己的尾巴 20 分钟,差一点就抓到了!"), sayC("它已经追了五年了。")],
+    [sayC("二楞以为镜子里有另一只狗,对着叫了一下午。"), sayD("那只狗真的很像我!而且它也很帅!")],
+    [sayD("发财说它在减肥,结果把我的零食吃了。"), sayC("那叫替你分担热量。")])},
+  {k:["零食","骨头","小鱼干","奖励","饼干"], r: anyOf(
+    [sayD("骨头!是骨头吗?!姐姐运动完我们一起吃好吃的(健康的那种)!"), sayC("小鱼干我自己会拿。你只要别挡着柜子。")],
+    [sayC("运动完奖励自己可以,别奖励成一顿火锅。"), sayD("奖励可以是散步!散步是世界上最好的奖励!")])},
+  {k:["散步","遛狗","出去","走走","公园"], r: anyOf(
+    [Object.assign(sayD("散步!!!你说散步了!我去拿牵引绳!(已经在门口了)"), {act:["dogwalk20","和二楞去遛弯"]}), sayC("……它听到这两个字就会这样。")],
+    [Object.assign(sayD("姐姐带我去公园吧,走 20 分钟,我们看看今天的云~"), {act:["dogwalk20","和二楞去遛弯"]})])},
+  {k:["完成了","今天完成","做完了","打卡","练完","运动完"], r: anyOf(
+    [sayD("姐姐太棒啦!!我要转三圈庆祝!"), sayC("嗯,看到了。今天值得多睡一会儿。")],
+    [sayC("不错。比昨天的你强。"), sayD("记得 30 分钟后测一次血糖,看看运动的效果!")])},
+  {k:["疼","痛","受伤","酸","抽筋"], r: () => [Object.assign(sayD("运动后 1–2 天的肌肉酸痛是正常的,拉伸、喝水、睡好就会缓解。如果是关节刺痛、肿胀或越来越疼,先停下来去看医生哦。"), {act:["cool5","做 5 分钟拉伸"]}), sayC("疼就别硬撑。我受了委屈也会躲起来休息。")]},
+  {k:["你是谁","你们是谁","几岁","名字"], r: () => [sayD("我是二楞,一只金毛!我最喜欢姐姐、散步、晒太阳和吃东西,排名不分先后!"), sayC("发财。英短。负责监督。")]},
+  {k:["早安","早上好","起床"], r: anyOf([sayD("早上好姐姐!今天的太阳特别适合散步!"), sayC("早。先喝杯温水,再看手机。")], [sayC("你醒了?我刚准备睡。"), sayD("姐姐早!空腹血糖测了吗?测完我们出门!")])},
+  {k:["晚安","睡了","睡觉"], r: anyOf([sayD("晚安姐姐!今天辛苦了,明天见~"), sayC("晚安。别再刷手机了。")], [sayC("终于。去睡吧,我替你守夜。"), sayD("我睡在门口,保护姐姐!")])},
+  {k:["发财坏","发财凶","讨厌发财","猫"], r: () => [sayC("我只是说实话。"), sayD("发财其实很关心你!它半夜会偷偷睡在你的拖鞋上。"), sayC("……二楞你闭嘴。")]},
+  {k:["二楞傻","笨","二楞"], r: () => [sayD(petLine("dog")), sayC("它确实不太聪明,但它很爱你。")]},
+  {k:["发财"], r: () => [sayC(petLine("cat"))]},
+  {k:["谢谢","感谢","爱你","哈哈","好的","嗯嗯"], r: anyOf([sayD("不客气!有姐姐在,我每天都很开心~"), sayC("嗯,我也……勉强开心。")], [sayD("我也爱你姐姐!(扑过去)"), sayC("别扑,毛会粘到衣服上。")])},
+  {k:["你好","hi","hello","嗨","在吗","晚上好"], r: () => chatHello()}
 ];
+function chatHello(){
+  const h = new Date().getHours(), a = achievements(), done = doneToday();
+  const greet = h < 6 ? "这么晚还没睡呀" : h < 10 ? "早上好" : h < 14 ? "中午好" : h < 18 ? "下午好" : "晚上好";
+  return [sayD(`姐姐${greet}!${done ? "今天已经运动过了,真棒!" : a ? `你已经${a}了,我都记着呢。` : "我们一起慢慢动起来吧!"}想聊什么都可以~`),
+    sayC(pick(["我也在。有事说事。","嗯。我在听,虽然看起来像在睡觉。","说吧,我今天心情还行。"]))];
+}
 function coachReply(text){
   const low = text.toLowerCase();
   for (const it of COACH) if (it.k.some(k => low.includes(k))) return it.r();
-  return [{who:"dog", text: pick([`我在听哦,${NAME()}。可以多说一点吗?是运动、血糖,还是心情的事?`, "嗯嗯!不管怎样,今天记得喝够水、动一动、早点睡。也可以点下面的快捷问题~", "要不要先来点轻松的?挑首喜欢的歌,做 5 分钟热身,我陪你!"]), act: Math.random() < .5 ? ["warm5","只做 5 分钟"] : null}];
+  return pick([
+    [Object.assign(sayD("我在听哦姐姐。是运动、血糖,还是心情的事?说给我听~"), {act: Math.random() < .5 ? ["warm5","只做 5 分钟"] : null})],
+    [sayD("嗯嗯!不管怎样,今天记得喝够水、动一动、早点睡。"), sayC("它就会说这三句。不过说得对。")],
+    [sayC("没听懂。但我猜你需要站起来走两步。"), sayD("我也是这么想的!走走走!")],
+    [sayD("姐姐说什么都对!(虽然我没完全听懂)"), sayC("……")]
+  ]);
 }
-const CHIPS = ["今天好累,不想动","餐后血糖有点高","今天练什么?","给我打打气","今天吃多了","最近压力好大"];
+const CHIPS = ["今天好累,不想动","餐后血糖有点高","今天练什么?","给我打打气","今天吃多了","睡不着","讲个笑话","陪我聊聊"];
 
 /* ---- reused from v1: body, sleep, workout cards, weight chart, diet ---- */
 function wSeries(){ return Object.entries(W()).sort((a,b)=>a[0]<b[0]?-1:1).map(([d,v])=>({d,v:+v})); }
@@ -897,7 +967,7 @@ function footprintCard(){
 }
 function walkCard(){
   const j = journey(), last = j.i >= MILESTONES.length-1;
-  return `<section class="card"><div class="row sp"><span class="lab">和二楞的散步路</span><span class="n" style="font-size:15px">${f1(j.km)} <span class="muted">公里</span></span></div>
+  return `<section class="card perch left">${petImg("dog","walk")}<div class="row sp"><span class="lab">和二楞的散步路</span><span class="n" style="font-size:15px">${f1(j.km)} <span class="muted">公里</span></span></div>
     <div class="path"><i style="width:${Math.round(Math.min(1, j.frac)*100)}%"></i></div>
     <div class="row sp small"><span class="muted">${j.cur[1]}</span><span>${last ? "已经环游世界了" : `再走 ${f1(Math.max(.1, j.next[0]-j.km))} 公里到 <b class="ser">${j.next[1]}</b>`}</span></div></section>`;
 }
@@ -905,7 +975,7 @@ function vHome(){
   const B = latestBody(), S = latestSleep(), lw = latestW(), tn = suggestions().filter(t => t.lv !== "good").length;
   const empty = !hasGlucose() && !B && !totals().n && !lw && !state.profile.sample;
   return `${heroCard()}${todayCard()}${glucoseMini()}${weekCard()}${footprintCard()}
-  <section class="card perch peek">${petImg("cat","sleep")}<span class="lab">发财说</span><div class="quote">“${esc(petLine("cat"))}”</div></section>
+  <section class="card perch cat peek">${petImg("cat","sleep")}<span class="lab">发财说</span><div class="quote">“${esc(petLine("cat"))}”</div></section>
   ${walkCard()}
   ${B || S || lw != null ? `<section class="card"><div class="row sp"><span class="lab">身体 · 最近</span><div class="row" style="gap:12px">${tn ? `<button class="linkbtn" data-act="openTips">改进建议 ${tn}</button>` : ""}<button class="linkbtn" data-tab="weight">详情 ›</button></div></div>
     <div class="minirow">${lw != null ? `<div><span class="v n">${f1(lw)}<small class="muted small"> kg</small></span><span class="muted small">体重</span></div>` : ""}
@@ -927,7 +997,7 @@ function tirSplit(S){
 function vGlucose(){
   const S = gSummary(), [lo, hi] = gRange(), dates = gDates(), t = today();
   const head = topbar("血糖", "glucose", `<button class="ob" data-act="import" data-ctx="glucose">${IC.camera}导入截图</button>`);
-  if (!S && !dates.length) return head + `<section class="card perch">${petImg("dog","lie")}<b class="ser" style="font-size:17px">还没有血糖数据</b>
+  if (!S && !dates.length) return head + `<section class="card perch lying">${petImg("dog","lie")}<b class="ser" style="font-size:17px">还没有血糖数据</b>
     <div class="muted small">在血糖 App 里截一张「周报告」或「日曲线」,点「导入截图」就能读出数字和曲线;也可以手动记一次指尖血。</div>
     <div class="row"><button class="btn primary sm" data-act="import" data-ctx="glucose">导入截图</button><button class="btn sm" data-act="openHypo">低血糖须知</button></div></section>` + logCard();
   if (!selDay || !dates.includes(selDay)) selDay = dates.filter(d => state.glucose.curves[d] || state.glucose.days[d]).pop() || dates[dates.length-1] || t;
@@ -935,7 +1005,7 @@ function vGlucose(){
   let card = "";
   if (S && S.tir != null){
     const good = S.tir >= 70;
-    card = `<section class="card"><span class="lab">${md(S.from)} – ${md(S.to)} · 目标范围 ${lo}–${hi}</span>
+    card = `<section class="card perch">${petImg("dog","sit2")}<span class="lab">${md(S.from)} – ${md(S.to)} · 目标范围 ${lo}–${hi}</span>
       <div class="row" style="align-items:baseline;gap:6px"><span class="n" style="font-size:52px;line-height:1">${f1(S.tir)}</span><span class="n muted" style="font-size:20px">%</span><span class="chip ${good ? "" : "amber"}" style="margin-left:auto">${good ? "高于目标 70%" : "低于目标 70%"}</span></div>
       ${sp ? `<div class="tirbar" role="img" aria-label="偏低 ${sp.tbr == null ? "未知" : f1(sp.tbr)+"%"},范围内 ${f1(sp.tir)}%,偏高 ${sp.tar == null ? "未知" : f1(sp.tar)+"%"}">${sp.tbr == null ? `<i style="flex:${100-sp.tir};background:var(--gray)"></i><i style="flex:${sp.tir};background:var(--sage)"></i>` : `${sp.tbr > 0 ? `<i style="flex:${sp.tbr};background:var(--coral)"></i>` : ""}<i style="flex:${sp.tir};background:var(--sage)"></i>${sp.tar > 0 ? `<i style="flex:${sp.tar};background:var(--amber)"></i>` : ""}`}</div>
       <div class="row sp" style="font-size:12px"><span class="muted">偏低 ${sp.tbr == null ? "–" : f1(sp.tbr)+"%"}</span><span class="muted">范围内 ${f1(sp.tir)}%</span><span class="muted">偏高 ${sp.tar == null ? "–" : f1(sp.tar)+"%"}</span></div>` : ""}
@@ -1001,7 +1071,7 @@ function vSport(){
     if (!ids.length && i !== ti) return "";
     return `<div class="r ${i === ti ? "today" : ""}"><span class="d">${w}</span>${ids.length ? `<button data-course="${ids[0]}" class="ellip">${i === ti ? `<b class="ser">${ids.map(id => esc(courseById(id).name)).join(" + ")}</b>` : ids.map(id => esc(courseById(id).name)).join(" + ")}</button>` : `<span class="muted">休息 · 可选</span>`}<span class="n muted">${ids.length ? comboMin(ids) + " 分" : ""}</span><span>${did ? `<span class="ok">${ICON.check}</span>` : ""}</span></div>`; }).join("");
   return topbar("运动", "sport", `<button class="ob" data-act="planSetup">${meta ? "调整计划" : "生成计划"}</button>`) + `
-  <section class="card perch">${petImg("dog","bow")}
+  <section class="card perch lying">${petImg("dog","lie")}
     ${meta ? `<div class="row sp"><span class="lab">本周计划 · 每次约 ${meta.target} 分钟</span><button class="linkbtn" data-act="planWhy">为什么这样排</button></div><div class="plan">${rows}</div>
       <button class="btn primary big" data-act="startToday">开始今天的运动</button>`
     : `<b class="ser" style="font-size:17px">还没有计划</b><div class="muted small">回答几个小问题,二楞会根据你的身体数据、血糖和喜好,搭配每周的课程。</div><button class="btn primary" data-act="planSetup" style="justify-self:start">生成我的计划</button>`}
@@ -1034,7 +1104,7 @@ function vDiet(){
     <div class="row" style="align-items:baseline;gap:8px"><span class="n" style="font-size:44px;line-height:1">${tg.kcal}</span><span class="muted">千卡</span></div>
     <div class="muted small">基础代谢 ${tg.bmr} · 日常消耗 ${tg.tdee} · ${goalTxt}</div>
     ${macro("蛋白质", tg.prot, tg.prot*4)}${macro("碳水", tg.carb, tg.carb*4)}${macro("脂肪", tg.fat, tg.fat*9)}</section>
-  <section class="card"><div class="row sp"><span class="lab">今日菜单 · 周${WD[ti]}</span>${wk ? `<span class="muted small">吃过的打个勾</span>` : ""}</div>
+  <section class="card perch">${petImg("dog","sit")}<div class="row sp"><span class="lab">今日菜单 · 周${WD[ti]}</span>${wk ? `<span class="muted small">吃过的打个勾</span>` : ""}</div>
     ${wk ? `<div>${MEALS.map(([m,lbl,sh],k) => { const r = recipeById(wk[ti][k]); if (!r) return ""; const po = portion(r, tg.kcal*sh), tp = tip(r);
       return `<div class="meal"><span class="m">${lbl}</span><div style="display:grid;gap:3px;min-width:0"><span class="nm">${r.name}</span>
         <span class="muted small">${tp ? tp + " · " : ""}蛋白 ${Math.round(r.p*po)}g · 碳水 ${Math.round(r.c*po)}g${po !== 1 ? ` · 份量 ×${po}` : ""}</span>
@@ -1072,7 +1142,7 @@ function weightCard(){
     const xy = pts.map(p => [diffD(d0,p.d)/dn*296 + 2, 6 + (hi0 - p.v)/span*40]);
     line = `<svg viewBox="0 0 300 52" width="100%" aria-hidden="true"><polyline fill="none" stroke="var(--forest)" stroke-width="1.8" stroke-linejoin="round" points="${xy.map(q => q.map(n => n.toFixed(1)).join(",")).join(" ")}"/><circle cx="${xy[xy.length-1][0]}" cy="${xy[xy.length-1][1]}" r="3.5" fill="var(--forest)"/></svg>`; }
   const down = state.profile.goal === "gain" ? dv > 0 : dv <= 0;
-  return `<section class="card"><span class="lab">体重 · 近 30 天</span>
+  return `<section class="card perch left">${petImg("dog","walk")}<span class="lab">体重 · 近 30 天</span>
     <div class="row" style="align-items:baseline;gap:6px"><span class="n" style="font-size:44px;line-height:1">${f1(lw)}</span><span class="muted">kg</span>${Math.abs(dv) >= .05 ? `<span class="chip ${down ? "" : "amber"}" style="margin-left:auto">${dv < 0 ? "↓" : "↑"} ${f1(Math.abs(dv))} kg</span>` : ""}</div>${line}</section>`;
 }
 function bodyCard(){
@@ -1087,11 +1157,11 @@ function bodyCard(){
 }
 function sleepCard(){
   const S = latestSleep(), all = state.health.sleep.slice().sort(byDate).slice(-14);
-  if (!S) return `<section class="card perch left">${petImg("cat","stretch")}<span class="lab">睡眠</span><div class="empty">导入手环或手表的睡眠截图,这里会出现睡眠结构。</div></section>`;
+  if (!S) return `<section class="card perch cat left">${petImg("cat","stretch")}<span class="lab">睡眠</span><div class="empty">导入手环或手表的睡眠截图,这里会出现睡眠结构。</div></section>`;
   const tot = (S.deep||0) + (S.light||0) + (S.rem||0) || S.night || 1, pct = v => v != null ? Math.round(v/tot*100) : null;
   const tmin = t => { if (!t) return null; const [h,m] = t.split(":").map(Number); return ((h < 12 ? h + 24 : h) - 20)*60 + m; };
   const b = tmin(S.bedtime), e = tmin(S.wake);
-  return `<section class="card perch left">${petImg("cat","stretch")}
+  return `<section class="card perch cat left">${petImg("cat","stretch")}
     <div class="row sp"><span class="lab">睡眠 · ${md(S.date)}</span><span class="n" style="font-size:16px">${hm(S.night)}</span></div>
     ${S.deep != null ? `<div class="stack" role="img" aria-label="深睡 ${pct(S.deep)}%,浅睡 ${pct(S.light)}%,快速眼动 ${pct(S.rem)}%"><i style="flex:${S.deep};background:var(--forest)"></i><i style="flex:${S.light};background:var(--sage)"></i><i style="flex:${S.rem||0};background:var(--s-rem)"></i></div>
       <div class="row" style="gap:12px;font-size:12px"><span class="muted">深睡 ${pct(S.deep)}%</span><span class="muted">浅睡 ${pct(S.light)}%</span><span class="muted">快速眼动 ${pct(S.rem)}%</span>${S.wakeCount != null ? `<span class="chip ${S.wakeCount > 1 ? "amber" : ""}" style="margin-left:auto">醒 ${S.wakeCount} 次</span>` : ""}</div>` : ""}
@@ -1208,7 +1278,7 @@ function openSheet(kind, arg){
       <div class="chat" id="chatList"></div>
       <div class="chatbar"><div class="fchips">${CHIPS.map(c=>`<button class="fchip" data-say="${c}">${c}</button>`).join("")}</div>
         <form id="chatForm"><input id="chatIn" placeholder="和二楞、发财说点什么…" autocomplete="off" maxlength="200"><button class="btn primary" type="submit">发送</button></form></div></div>`;
-    if (!chat.length){ const a = achievements(); chat.push({who:"dog", text:`${NAME()},你来啦。${a ? `你已经${a}了,真不错。` : "我们一起慢慢动起来。"}想聊什么都可以。`}, {who:"cat", text:"我也在。有事说事。"}); }
+    if (!chat.length) chat.push(...chatHello());
     renderChat();
   } else if (kind === "bg"){
     bgEditor(arg);
@@ -1340,7 +1410,9 @@ function play(ids){
   Music.beep(); drawPlayer();
   clearInterval(timer); timer = setInterval(tick, 1000);
 }
-const PLAYER_CHEERS = {dog:["做得很好,保持这个节奏。","呼吸别憋着。","快到了,我陪你。","动作慢一点也没关系,做标准就好。"], cat:["我在看着。","动作标准,勉强给个赞。","坚持住,别停。","停了我会笑你的。"]};
+const PLAYER_CHEERS = {
+  dog:["姐姐做得很好,保持这个节奏!","呼吸别憋着,吸气、呼气~","快到了,我在旁边陪着你!","动作慢一点也没关系,做标准就好。","姐姐好厉害,尾巴已经摇成螺旋桨了!","再坚持一下,做完我们去晒太阳。","你出汗的样子闪闪发光!","我数着呢,一下都没少!","累了就放慢,别停下就行。","这个动作我学不会,姐姐教教我?"],
+  cat:["我在看着。","动作标准,勉强给个赞。","坚持住,别停。","停了我会笑你的。","这个伸展,我天生就会。","呼吸。像我睡觉那样慢。"]};
 function tick(){
   if (!PL || !PL.run) return;
   PL.left--; PL.el++; PL.per[PL.seq[PL.i].ci]++;
@@ -1349,7 +1421,8 @@ function tick(){
   if (PL.el % 25 === 0){ PL.cheer = pick(PLAYER_CHEERS[buddyOf()]); const cb = $("#player .buddy"); if (cb){ cb.querySelector(".line").textContent = PL.cheer; cb.classList.remove("pop"); void cb.offsetWidth; cb.classList.add("pop"); } }
   drawPlayer(true);
 }
-const buddyOf = () => { const c = courseById(PL.ids[PL.seq[PL.i].ci]); return ["flex","relax"].includes(c.cat) ? "cat" : "dog"; };
+// 二楞 keeps you company; 发财 only leads its own cat-yoga class
+const buddyOf = () => courseById(PL.ids[PL.seq[PL.i].ci]).id === "catyoga12" ? "cat" : "dog";
 function next(){ PL.i++; if (PL.i >= PL.seq.length) return finish(true); PL.left = PL.seq[PL.i].s; PL.cheer = ""; Music.beep(PL.seq[PL.i].rest ? 520 : 990, 220); drawPlayer(); }
 function finish(complete){
   clearInterval(timer);
@@ -1416,6 +1489,7 @@ function closePlayer(){ const pl = $("#player"); document.documentElement.classL
 function exportData(){
   const data = JSON.stringify({app:"轻体日志", version:2, exported:new Date().toISOString(), data:Object.fromEntries(DOCS.map(n => [n, state[n]]))}, null, 1);
   const name = `轻体日志备份-${today()}.json`;
+  if (window.QingtiAndroid){ const where = QingtiAndroid.save(name, data); toast(where ? `备份已保存到 ${where}` : "备份保存失败"); return; }
   const viaArtifact = window.claude && window.claude.use ? window.claude.use("downloads").catch(() => null) : Promise.resolve(null);
   viaArtifact.then(dl => {
     if (dl) return dl.save({filename:name, data}).then(() => toast("备份已导出")).catch(() => toast("已取消导出"));
@@ -1579,4 +1653,4 @@ document.addEventListener("visibilitychange", () => { if (document.hidden && PL 
 if (!storageOK) setTimeout(() => toast("当前浏览器不能保存数据(可能是无痕模式),关闭页面后记录会丢失"), 800);
 Music.setVol(state.profile.vol);
 render(); loadBgs();
-if ("serviceWorker" in navigator && location.protocol === "https:" && !/claude|anthropic/.test(location.hostname)) navigator.serviceWorker.register("sw.js").catch(() => {});
+if ("serviceWorker" in navigator && location.protocol === "https:" && !/claude|anthropic|androidplatform/.test(location.hostname)) navigator.serviceWorker.register("sw.js").catch(() => {});
